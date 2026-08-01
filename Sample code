@@ -1,0 +1,681 @@
+# ==========================================
+# Weather App using Python and Tkinter
+# Part 1
+# ==========================================
+
+import tkinter as tk
+from tkinter import messagebox
+import requests
+from datetime import datetime
+
+# -------------------------------
+# API Configuration
+# -------------------------------
+API_KEY = "YOUR_OPENWEATHER_API_KEY"
+BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+# -------------------------------
+# Create Main Window
+# -------------------------------
+root = tk.Tk()
+root.title("Weather App")
+root.geometry("600x650")
+root.resizable(False, False)
+root.configure(bg="#87CEEB")
+
+# -------------------------------
+# Fonts
+# -------------------------------
+TITLE_FONT = ("Arial", 24, "bold")
+LABEL_FONT = ("Arial", 14)
+VALUE_FONT = ("Arial", 14, "bold")
+BUTTON_FONT = ("Arial", 12, "bold")
+
+# -------------------------------
+# Variables
+# -------------------------------
+city_var = tk.StringVar()
+
+# -------------------------------
+# Helper Functions
+# -------------------------------
+def kelvin_to_celsius(temp):
+    return round(temp - 273.15, 2)
+
+
+def unix_to_time(timestamp):
+    return datetime.fromtimestamp(timestamp).strftime("%I:%M %p")
+
+
+def clear_labels():
+    city_value.config(text="")
+    country_value.config(text="")
+    temp_value.config(text="")
+    feels_value.config(text="")
+    humidity_value.config(text="")
+    pressure_value.config(text="")
+    wind_value.config(text="")
+    weather_value.config(text="")
+    sunrise_value.config(text="")
+    sunset_value.config(text="")
+    date_value.config(text="")
+
+
+# -------------------------------
+# Search Weather
+# -------------------------------
+def search_weather():
+
+    city = city_var.get().strip()
+
+    if city == "":
+        messagebox.showwarning(
+            "Input Error",
+            "Please enter a city name."
+        )
+        return
+
+    params = {
+        "q": city,
+        "appid": API_KEY
+    }
+
+    try:
+
+        response = requests.get(
+            BASE_URL,
+            params=params,
+            timeout=10
+        )
+
+        data = response.json()
+
+        if data["cod"] != 200:
+            clear_labels()
+            messagebox.showerror(
+                "Error",
+                data["message"].capitalize()
+            )
+            return
+
+        display_weather(data)
+
+    except requests.exceptions.ConnectionError:
+        messagebox.showerror(
+            "Connection Error",
+            "No Internet Connection."
+        )
+
+    except requests.exceptions.Timeout:
+        messagebox.showerror(
+            "Timeout",
+            "Request Timed Out."
+        )
+
+    except Exception as e:
+        messagebox.showerror(
+            "Error",
+            str(e)
+        )
+
+
+# -------------------------------
+# Display Weather
+# (Will be completed in Part 2)
+# -------------------------------
+def display_weather(data):
+    pass
+
+
+# -------------------------------
+# Title
+# -------------------------------
+title = tk.Label(
+    root,
+    text="🌦 Weather App",
+    font=TITLE_FONT,
+    bg="#87CEEB",
+    fg="navy"
+)
+
+title.pack(pady=15)
+
+# -------------------------------
+# Search Frame
+# -------------------------------
+search_frame = tk.Frame(root, bg="#87CEEB")
+search_frame.pack(pady=10)
+# ==========================================
+# Weather App using Python and Tkinter
+# Part 2
+# ==========================================
+
+# -------------------------------
+# Complete display_weather()
+# -------------------------------
+def display_weather(data):
+
+    city_name = data["name"]
+    country = data["sys"]["country"]
+
+    temperature = kelvin_to_celsius(data["main"]["temp"])
+    feels_like = kelvin_to_celsius(data["main"]["feels_like"])
+
+    humidity = data["main"]["humidity"]
+    pressure = data["main"]["pressure"]
+
+    wind_speed = data["wind"]["speed"]
+
+    weather = data["weather"][0]["description"].title()
+
+    sunrise = unix_to_time(data["sys"]["sunrise"])
+    sunset = unix_to_time(data["sys"]["sunset"])
+
+    current_date = datetime.now().strftime("%d %B %Y")
+    current_time = datetime.now().strftime("%I:%M %p")
+
+    city_value.config(text=city_name)
+    country_value.config(text=country)
+
+    temp_value.config(text=f"{temperature} °C")
+    feels_value.config(text=f"{feels_like} °C")
+
+    humidity_value.config(text=f"{humidity}%")
+    pressure_value.config(text=f"{pressure} hPa")
+
+    wind_value.config(text=f"{wind_speed} m/s")
+
+    weather_value.config(text=weather)
+
+    sunrise_value.config(text=sunrise)
+    sunset_value.config(text=sunset)
+
+    date_value.config(
+        text=f"{current_date}\n{current_time}"
+    )
+
+
+# -------------------------------
+# Search Entry
+# -------------------------------
+city_entry = tk.Entry(
+    search_frame,
+    textvariable=city_var,
+    font=("Arial", 14),
+    width=25
+)
+
+city_entry.grid(
+    row=0,
+    column=0,
+    padx=10
+)
+
+city_entry.focus()
+
+
+# -------------------------------
+# Search Button
+# -------------------------------
+search_button = tk.Button(
+    search_frame,
+    text="Search",
+    font=BUTTON_FONT,
+    bg="navy",
+    fg="white",
+    command=search_weather,
+    padx=15
+)
+
+search_button.grid(
+    row=0,
+    column=1
+)
+
+
+# -------------------------------
+# Weather Information Frame
+# -------------------------------
+info_frame = tk.Frame(
+    root,
+    bg="white",
+    bd=2,
+    relief="groove"
+)
+
+info_frame.pack(
+    padx=20,
+    pady=20,
+    fill="both",
+    expand=True
+)
+
+
+# -------------------------------
+# City
+# -------------------------------
+city_label = tk.Label(
+    info_frame,
+    text="City:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+city_label.grid(
+    row=0,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+city_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+city_value.grid(
+    row=0,
+    column=1,
+    sticky="w"
+)
+
+
+# -------------------------------
+# Country
+# -------------------------------
+country_label = tk.Label(
+    info_frame,
+    text="Country:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+country_label.grid(
+    row=1,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+country_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+country_value.grid(
+    row=1,
+    column=1,
+    sticky="w"
+)
+# ==========================================
+# Weather App using Python and Tkinter
+# Part 3
+# ==========================================
+
+# -------------------------------
+# Temperature
+# -------------------------------
+temp_label = tk.Label(
+    info_frame,
+    text="Temperature:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+temp_label.grid(
+    row=2,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+temp_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+temp_value.grid(
+    row=2,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Feels Like
+# -------------------------------
+feels_label = tk.Label(
+    info_frame,
+    text="Feels Like:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+feels_label.grid(
+    row=3,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+feels_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+feels_value.grid(
+    row=3,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Humidity
+# -------------------------------
+humidity_label = tk.Label(
+    info_frame,
+    text="Humidity:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+humidity_label.grid(
+    row=4,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+humidity_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+humidity_value.grid(
+    row=4,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Pressure
+# -------------------------------
+pressure_label = tk.Label(
+    info_frame,
+    text="Pressure:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+pressure_label.grid(
+    row=5,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+pressure_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+pressure_value.grid(
+    row=5,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Wind Speed
+# -------------------------------
+wind_label = tk.Label(
+    info_frame,
+    text="Wind Speed:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+wind_label.grid(
+    row=6,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+wind_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+wind_value.grid(
+    row=6,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Weather Description
+# -------------------------------
+weather_label = tk.Label(
+    info_frame,
+    text="Weather:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+weather_label.grid(
+    row=7,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+weather_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+weather_value.grid(
+    row=7,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Sunrise
+# -------------------------------
+sunrise_label = tk.Label(
+    info_frame,
+    text="Sunrise:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+sunrise_label.grid(
+    row=8,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+sunrise_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+sunrise_value.grid(
+    row=8,
+    column=1,
+    sticky="w"
+)
+# ==========================================
+# Weather App using Python and Tkinter
+# Part 4
+# ==========================================
+
+# -------------------------------
+# Sunset
+# -------------------------------
+sunset_label = tk.Label(
+    info_frame,
+    text="Sunset:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+sunset_label.grid(
+    row=9,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+sunset_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white"
+)
+
+sunset_value.grid(
+    row=9,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Date & Time
+# -------------------------------
+date_label = tk.Label(
+    info_frame,
+    text="Date & Time:",
+    font=LABEL_FONT,
+    bg="white"
+)
+
+date_label.grid(
+    row=10,
+    column=0,
+    sticky="w",
+    padx=15,
+    pady=8
+)
+
+date_value = tk.Label(
+    info_frame,
+    text="",
+    font=VALUE_FONT,
+    bg="white",
+    justify="left"
+)
+
+date_value.grid(
+    row=10,
+    column=1,
+    sticky="w"
+)
+
+# -------------------------------
+# Button Frame
+# -------------------------------
+button_frame = tk.Frame(root, bg="#87CEEB")
+button_frame.pack(pady=15)
+
+# -------------------------------
+# Clear Function
+# -------------------------------
+def clear_all():
+    city_var.set("")
+    clear_labels()
+    city_entry.focus()
+
+# -------------------------------
+# Clear Button
+# -------------------------------
+clear_button = tk.Button(
+    button_frame,
+    text="Clear",
+    font=BUTTON_FONT,
+    bg="orange",
+    fg="white",
+    width=10,
+    command=clear_all
+)
+
+clear_button.grid(
+    row=0,
+    column=0,
+    padx=10
+)
+
+# -------------------------------
+# Exit Button
+# -------------------------------
+exit_button = tk.Button(
+    button_frame,
+    text="Exit",
+    font=BUTTON_FONT,
+    bg="red",
+    fg="white",
+    width=10,
+    command=root.destroy
+)
+
+exit_button.grid(
+    row=0,
+    column=1,
+    padx=10
+)
+
+# -------------------------------
+# Press Enter to Search
+# -------------------------------
+city_entry.bind(
+    "<Return>",
+    lambda event: search_weather()
+)
+
+# -------------------------------
+# Footer
+# -------------------------------
+footer = tk.Label(
+    root,
+    text="Powered by OpenWeatherMap API",
+    font=("Arial", 10),
+    bg="#87CEEB",
+    fg="black"
+)
+
+footer.pack(pady=10)
+
+# -------------------------------
+# Start Application
+# -------------------------------
+root.mainloop()
